@@ -1,0 +1,38 @@
+{
+  "Repositories": [
+    {
+      "Name": "Repo One",
+      "RepositoryPath": "D:\\Projects\\RepoOne",
+      "Enabled": true,
+      "DebounceSeconds": 20,
+      "TrackedFiles": [
+        "data\\results.json"
+      ],
+      "IgnoredDirectories": [
+        ".git",
+        "bin",
+        "obj",
+        "node_modules",
+        "dist",
+        "build",
+        "target",
+        ".idea",
+        ".vs"
+      ],
+      "IgnoredFileSuffixes": [
+        ".tmp",
+        ".temp",
+        ".swp",
+        ".log",
+        "~"
+      ]
+    },
+    {
+      "Name": "Repo Two",
+      "RepositoryPath": "C:\\Work\\RepoTwo",
+      "Enabled": true,
+      "DebounceSeconds": 30,
+      "TrackedFiles": []
+    }
+  ]
+}
