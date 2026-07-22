@@ -4,6 +4,7 @@
       "Name": "Repo One",
       "RepositoryPath": "D:\\Projects\\RepoOne",
       "Enabled": true,
+      "PushEnabled": true,
       "DebounceSeconds": 20,
       "TrackedFiles": [
         "data\\results.json"
@@ -31,6 +32,7 @@
       "Name": "Repo Two",
       "RepositoryPath": "C:\\Work\\RepoTwo",
       "Enabled": true,
+      "PushEnabled": false,
       "DebounceSeconds": 30,
       "TrackedFiles": []
     }

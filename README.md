@@ -42,7 +42,7 @@ GitAutoTray is intended to supplement normal Git usage rather than replace it. E
 - Windows 10/11
 - Git available as `git.exe` in PATH
 - .NET 8 SDK for building
-- Git credentials configured so `git push` works without an interactive prompt
+- Git credentials configured so `git push` works without an interactive prompt for repositories with `PushEnabled: true`
 
 ## Run
 
@@ -67,6 +67,7 @@ Right-click the tray icon and choose **Open configuration**. Edit the file, save
       "Name": "Repo One",
       "RepositoryPath": "D:\\Projects\\RepoOne",
       "Enabled": true,
+      "PushEnabled": true,
       "DebounceSeconds": 20,
       "TrackedFiles": [
         "data\\results.json"
@@ -82,6 +83,7 @@ Right-click the tray icon and choose **Open configuration**. Edit the file, save
       "Name": "Repo Two",
       "RepositoryPath": "C:\\Work\\RepoTwo",
       "Enabled": true,
+      "PushEnabled": false,
       "DebounceSeconds": 30,
       "TrackedFiles": []
     }
@@ -94,6 +96,8 @@ Right-click the tray icon and choose **Open configuration**. Edit the file, save
 - An empty `TrackedFiles` list watches and commits the entire repository, subject to ignores.
 - A non-empty list watches, stages, and commits only those files.
 - Each repository can have a different debounce delay.
+- Set `PushEnabled` to `false` for local-only repositories. The app will commit but will not run `git push`.
+- `PushEnabled` defaults to `true`, so existing configurations keep their current behavior.
 - Set `Enabled` to `false` to keep a repository in the config without watching it.
 
 ## Tray menu
@@ -101,11 +105,11 @@ Right-click the tray icon and choose **Open configuration**. Edit the file, save
 Each configured repository gets its own submenu with:
 
 - Status
-- Commit and push now
+- Commit and push now, or Commit locally now when pushing is disabled
 - Pause/Resume
 - Open repository
 
-There are also global controls to commit all repositories, pause all watching, open/reload configuration, and open the log.
+There are also global controls to commit all repositories, pause all watching, open/reload configuration, and open the log. Each repository follows its own `PushEnabled` setting.
 
 ## Publish a standalone EXE
 
@@ -127,10 +131,15 @@ In each repository:
 
 ```powershell
 git status
+```
+
+For repositories with `PushEnabled: true`, also run:
+
+```powershell
 git push
 ```
 
-Make sure `git push` finishes without asking for credentials.
+Make sure `git push` finishes without asking for credentials. Local-only repositories with `PushEnabled: false` do not need a remote.
 
 ### 2. Use two temporary test repositories
 
@@ -193,7 +202,23 @@ Use **Commit and push now** without modifying anything. The repository status sh
 
 Pause Repo One from its submenu. Modify both repositories. Repo Two should commit; Repo One should not until resumed and changed again.
 
-### 7. Inspect failures
+### 7. Test a local-only repository
+
+Set one repository to:
+
+```json
+"PushEnabled": false
+```
+
+Edit its watched file and wait for the debounce delay. Confirm a local commit was created:
+
+```powershell
+git -C "C:\path\to\local-repo" log -1 --oneline
+```
+
+The tray status should report **Committed locally**, and the log should say that push was disabled. No remote is required.
+
+### 8. Inspect failures
 
 Open the tray menu and select **Open log**. Logs are stored at:
 
@@ -205,6 +230,7 @@ Open the tray menu and select **Open log**. Logs are stored at:
 
 - `git add --all` is used only when `TrackedFiles` is empty.
 - When `TrackedFiles` is populated, only those paths are staged and committed.
+- `PushEnabled: false` creates local commits without attempting a push.
 - A failed push leaves the commit safely in the local repository.
 - The app does not automatically pull, merge, rebase, or resolve conflicts.
 - `.gitignore` does not stop changes to files that Git already tracks.

@@ -47,7 +47,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         menu.Items.Add(_statusItem);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(_repositoriesMenu);
-        menu.Items.Add("Commit and push all now", null, async (_, _) => await CommitAllAsync("manual"));
+        menu.Items.Add("Commit all now", null, async (_, _) => await CommitAllAsync("manual"));
         menu.Items.Add(_pauseItem);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Open configuration", null, (_, _) => OpenConfiguration());
@@ -304,6 +304,15 @@ internal sealed class TrayApplicationContext : ApplicationContext
                 return;
             }
 
+            if (!runtime.Config.PushEnabled)
+            {
+                Log($"[{runtime.DisplayName}] Local commit completed; push disabled ({reason}).");
+                SetRepositoryStatus(runtime, "Committed locally");
+                ShowBalloon("Git Auto Tray", $"{runtime.DisplayName}: changes committed locally.", ToolTipIcon.Info);
+                RestoreRepositoryStatusLater(runtime);
+                return;
+            }
+
             var push = await RunGitAsync(runtime.Config.RepositoryPath, ["push"]);
             if (push.ExitCode != 0)
             {
@@ -382,7 +391,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
         runtime.PauseMenuItem = new ToolStripMenuItem("Pause", null, (_, _) => ToggleRepositoryPause(runtime));
         root.DropDownItems.Add(runtime.StatusMenuItem);
         root.DropDownItems.Add(new ToolStripSeparator());
-        root.DropDownItems.Add("Commit and push now", null, async (_, _) => await CommitAndPushAsync(runtime, "manual"));
+        var commitActionText = runtime.Config.PushEnabled ? "Commit and push now" : "Commit locally now";
+        root.DropDownItems.Add(commitActionText, null, async (_, _) => await CommitAndPushAsync(runtime, "manual"));
         root.DropDownItems.Add(runtime.PauseMenuItem);
         root.DropDownItems.Add("Open repository", null, (_, _) => OpenRepository(runtime.Config.RepositoryPath));
         _repositoriesMenu.DropDownItems.Add(root);
@@ -574,6 +584,7 @@ internal sealed class AppConfig
             {
                 Name = "Example repository",
                 RepositoryPath = @"C:\path\to\your\git\project",
+                PushEnabled = true,
                 TrackedFiles = []
             }
         ]
@@ -585,6 +596,7 @@ internal sealed class RepositoryConfig
     public string Name { get; set; } = "";
     public string RepositoryPath { get; set; } = "";
     public bool Enabled { get; set; } = true;
+    public bool PushEnabled { get; set; } = true;
     public int DebounceSeconds { get; set; } = 20;
 
     // Empty means watch and commit all non-ignored changes in the repository.
