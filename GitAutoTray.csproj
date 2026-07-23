@@ -6,5 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>git_auto_tray.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>
